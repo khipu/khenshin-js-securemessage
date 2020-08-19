@@ -16,7 +16,7 @@ export default class SecureMessage {
     private readonly privateKey: string
     private SymmetricKeys: Map<string, Key> = new Map<string, Key>()
 
-    private constructor(publicKeyBase64?: string, privateKeyBase64?: string) {
+    constructor(publicKeyBase64?: string, privateKeyBase64?: string) {
         if(publicKeyBase64 !== undefined && privateKeyBase64 !== undefined) {
             this.publicKey = publicKeyBase64
             this.privateKey = privateKeyBase64
@@ -50,10 +50,6 @@ export default class SecureMessage {
         }
         const nonce = this.newNonceS()
         const keyUint8Array = decodeBase64(symmetricKey.raw)
-
-        if (typeof plainText !== 'object') {
-            throw new Error('Only JSON object accepted as an input')
-        }
 
         const messageUint8 = decodeUTF8(plainText)
         const newBox = secretbox(messageUint8, nonce, keyUint8Array)
