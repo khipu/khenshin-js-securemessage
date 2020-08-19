@@ -16,15 +16,20 @@ export default class SecureMessage {
     private readonly privateKey: string
     private SymmetricKeys: Map<string, Key> = new Map<string, Key>()
 
-    private constructor() {
-        const newKey = box.keyPair()
-        this.publicKey = encodeBase64(newKey.publicKey)
-        this.privateKey = encodeBase64(newKey.secretKey)
+    private constructor(publicKeyBase64?: string, privateKeyBase64?: string) {
+        if(publicKeyBase64 !== undefined && privateKeyBase64 !== undefined) {
+            this.publicKey = publicKeyBase64
+            this.privateKey = privateKeyBase64
+        } else {
+            const newKey = box.keyPair()
+            this.publicKey = encodeBase64(newKey.publicKey)
+            this.privateKey = encodeBase64(newKey.secretKey)
+        }
     }
 
-    static getInstance(): SecureMessage {
+    static getInstance(publicKeyBase64?: string, privateKeyBase64?: string): SecureMessage {
         if (SecureMessage._instance === null) {
-            SecureMessage._instance = new SecureMessage()
+            SecureMessage._instance = new SecureMessage(publicKeyBase64, privateKeyBase64)
         }
         return SecureMessage._instance
     }
