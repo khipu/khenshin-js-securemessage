@@ -17,7 +17,7 @@ export default class SecureMessage {
     private SymmetricKeys: Map<string, Key> = new Map<string, Key>()
 
     constructor(publicKeyBase64?: string, privateKeyBase64?: string) {
-        if(publicKeyBase64 !== undefined && privateKeyBase64 !== undefined) {
+        if (publicKeyBase64 !== undefined && privateKeyBase64 !== undefined) {
             this.publicKey = publicKeyBase64
             this.privateKey = privateKeyBase64
         } else {
@@ -27,9 +27,13 @@ export default class SecureMessage {
         }
     }
 
-    static getInstance(publicKeyBase64?: string, privateKeyBase64?: string): SecureMessage {
+    static configure(publicKeyBase64?: string, privateKeyBase64?: string): void {
+        SecureMessage._instance = new SecureMessage(publicKeyBase64, privateKeyBase64)
+    }
+
+    static getInstance(): SecureMessage {
         if (SecureMessage._instance === null) {
-            SecureMessage._instance = new SecureMessage(publicKeyBase64, privateKeyBase64)
+            throw new Error("Instance not configured, call configure first")
         }
         return SecureMessage._instance
     }
