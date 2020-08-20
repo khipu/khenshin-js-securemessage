@@ -26,13 +26,11 @@ class SecureMessage {
         }
         return SecureMessage._instance;
     }
-    encrypt(plainText, receiverPubKey, reuseExistingKey = true) {
+    encrypt(plainText, receiverPubKey) {
         let symmetricKey;
-        if (!this.SymmetricKeys.has(receiverPubKey) || !reuseExistingKey) {
+        if (!this.SymmetricKeys.has(receiverPubKey)) {
             symmetricKey = this.encryptSymmetricKey(receiverPubKey);
-            if (reuseExistingKey) {
-                this.SymmetricKeys.set(receiverPubKey, symmetricKey);
-            }
+            this.SymmetricKeys.set(receiverPubKey, symmetricKey);
         }
         else {
             symmetricKey = this.SymmetricKeys.get(receiverPubKey);
@@ -70,22 +68,20 @@ class SecureMessage {
         const privateKeyAsUint8Array = tweetnacl_util_1.decodeBase64(this.privateKey);
         return tweetnacl_util_1.encodeBase64(tweetnacl_1.box.before(publicKeyAsUint8Array, privateKeyAsUint8Array));
     }
-    decrypt(cipherText, senderPublicKey, reuseExistingKey = true) {
+    decrypt(cipherText, senderPublicKey) {
         const dataParts = cipherText.split('.');
         if (dataParts.length !== 2) {
             throw new Error('Payload is corrupted');
         }
         let symmetricKey;
-        if (!this.SymmetricKeys.has(senderPublicKey) || !reuseExistingKey) {
-            symmetricKey = this.decryptSymmetricKey(dataParts[1], senderPublicKey);
-            if (reuseExistingKey) {
-                this.SymmetricKeys.set(senderPublicKey, symmetricKey);
-            }
+        if (!this.SymmetricKeys.has(senderPublicKey)) {
+            symmetricKey = { raw: this.decryptSymmetricKey(dataParts[1], senderPublicKey), enc: dataParts[1] };
+            this.SymmetricKeys.set(senderPublicKey, symmetricKey);
         }
         else {
             symmetricKey = this.SymmetricKeys.get(senderPublicKey);
         }
-        const keyUint8Array = tweetnacl_util_1.decodeBase64(symmetricKey);
+        const keyUint8Array = tweetnacl_util_1.decodeBase64(symmetricKey.raw);
         const messageWithNonceAsUint8Array = tweetnacl_util_1.decodeBase64(dataParts[0]);
         const nonce = messageWithNonceAsUint8Array.slice(0, tweetnacl_1.secretbox.nonceLength);
         const message = messageWithNonceAsUint8Array.slice(tweetnacl_1.secretbox.nonceLength, dataParts[0].length);
