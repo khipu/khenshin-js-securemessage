@@ -38,14 +38,12 @@ export default class SecureMessage {
         return SecureMessage._instance
     }
 
-    public encrypt(plainText: string, receiverPubKey: string, reuseExistingKey: boolean = true): string {
-        let symmetricKey
+    public encrypt(plainText: string, receiverPubKey: string): string {
+        let symmetricKey: Key | undefined
 
-        if (!this.SymmetricKeys.has(receiverPubKey) || !reuseExistingKey) {
+        if (!this.SymmetricKeys.has(receiverPubKey)) {
             symmetricKey = this.encryptSymmetricKey(receiverPubKey)
-            if (reuseExistingKey) {
-                this.SymmetricKeys.set(receiverPubKey, symmetricKey)
-            }
+            this.SymmetricKeys.set(receiverPubKey, symmetricKey)
         } else {
             symmetricKey = this.SymmetricKeys.get(receiverPubKey)
         }
@@ -95,24 +93,22 @@ export default class SecureMessage {
         return encodeBase64(box.before(publicKeyAsUint8Array, privateKeyAsUint8Array))
     }
 
-    public decrypt(cipherText: string, senderPublicKey: string, reuseExistingKey: boolean = true): string {
+    public decrypt(cipherText: string, senderPublicKey: string): string {
         const dataParts = cipherText.split('.')
         if (dataParts.length !== 2) {
             throw new Error('Payload is corrupted')
         }
 
-        let symmetricKey
+        let symmetricKey: Key | undefined
 
-        if (!this.SymmetricKeys.has(senderPublicKey) || !reuseExistingKey) {
-            symmetricKey = this.decryptSymmetricKey(dataParts[1], senderPublicKey)
-            if (reuseExistingKey) {
-                this.SymmetricKeys.set(senderPublicKey, symmetricKey)
-            }
+        if (!this.SymmetricKeys.has(senderPublicKey)) {
+            symmetricKey = {raw: this.decryptSymmetricKey(dataParts[1], senderPublicKey), enc: dataParts[1]}
+            this.SymmetricKeys.set(senderPublicKey, symmetricKey)
         } else {
             symmetricKey = this.SymmetricKeys.get(senderPublicKey)
         }
 
-        const keyUint8Array = decodeBase64(symmetricKey)
+        const keyUint8Array = decodeBase64(symmetricKey!.raw)
         const messageWithNonceAsUint8Array = decodeBase64(dataParts[0])
 
         const nonce = messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength)

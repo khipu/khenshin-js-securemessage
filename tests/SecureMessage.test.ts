@@ -20,16 +20,17 @@ describe('SecureMessage', () => {
         expect(SecureMessage.getInstance().publicKey === key)
     })
     it('encrypt and decrypt cycle', async () => {
-        const sender = new SecureMessage()
-        const reciver = new SecureMessage()
-
+        const server = new SecureMessage()
+        const client = new SecureMessage()
         const toEncrypt = randomstring.generate()
-        console.log(`toEncrypt: ${toEncrypt}`)
-        const encrypted = sender.encrypt(toEncrypt, reciver.publicKey)
-        console.log(`encrypted: ${encrypted}`)
-        const decrypted = reciver.decrypt(encrypted, sender.publicKey)
-        console.log(`decrypted: ${decrypted}`)
-
+        const encrypted = server.encrypt(toEncrypt, client.publicKey)
+        const decrypted = client.decrypt(encrypted, server.publicKey)
         expect(toEncrypt === decrypted)
+
+        const toEncrypt2 = randomstring.generate()
+        const encrypted2 = client.encrypt(toEncrypt2, server.publicKey)
+        const decrypted2 = server.decrypt(encrypted2, client.publicKey)
+        expect(toEncrypt2 === decrypted2)
+
     })
 })
