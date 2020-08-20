@@ -6,9 +6,9 @@ declare module 'khenshin-js-securemessage' {
 
         static getInstance(): SecureMessage
 
-        encrypt(plainText: string, receiverPubKey: string, reuseExistingKey?: boolean): string
+        encrypt(plainText: string, receiverPubKey: string): string
 
-        decrypt(cipherText: string, senderPublicKey: string, reuseExistingKey?: boolean): string
+        decrypt(cipherText: string, senderPublicKey: string): string
     }
 }
 
